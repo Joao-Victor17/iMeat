@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,15 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
+import { ProductService } from "@/services/product.service";
 // Importamos o hook do carrinho para dar vida ao botão
 import { useCart } from "./CartContext";
+import { loadProducts } from "@/hooks/loadProducts";
+import { Category } from "@/entities/Category";
+import { Product } from "@/entities/Products";
+import { loadCategories } from "@/hooks/loadCategories";
 
 // --- DADOS DE EXEMPLO ---
 const COMBOS = [
@@ -30,54 +36,17 @@ const COMBOS = [
   },
 ];
 
-const CATEGORIES = [
-  { id: "001", name: "Bovinos" },
-  { id: "002", name: "Suínos" },
-  { id: "003", name: "Aves" },
-  { id: "004", name: "Kits" },
-  { id: "005", name: "Acessórios" },
-];
-
-// Ajustado para bater com a tipagem do CartContext (price como number, adição de stock)
-const PRODUCTS = [
-  {
-    id: "001",
-    name: "Picanha Argentina (1kg)",
-    price: 98.9,
-    stock: 10,
-    image: "https://via.placeholder.com/150/1e1e1e/FFFFFF?text=Carne",
-  },
-  {
-    id: "002",
-    name: "Costela Suína BBQ",
-    price: 45.9,
-    stock: 5,
-    image: "https://via.placeholder.com/150/1e1e1e/FFFFFF?text=Carne",
-  },
-  {
-    id: "003",
-    name: "Linguiça Artesanal",
-    price: 32.9,
-    stock: 15,
-    image: "https://via.placeholder.com/150/1e1e1e/FFFFFF?text=Carne",
-  },
-  {
-    id: "004",
-    name: "Bife Ancho (500g)",
-    price: 65.9,
-    stock: 8,
-    image: "https://via.placeholder.com/150/1e1e1e/FFFFFF?text=Carne",
-  },
-];
-
 export default function IMeatPrimeHome() {
-  const [cartOpen, setCartOpen] = useState(false);
-
   // Extraímos os métodos e dados do carrinho
   const { addToCart, cart } = useCart();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Calcula quantos itens totais existem no carrinho para o badge
-  const totalItemsInCart = cart.reduce((acc, item) => acc + item.quantity, 0);
+  useEffect(() => {
+    loadProducts({ setProducts, setIsLoading });
+    loadCategories({ setCategories, setIsLoading });
+  }, []);
 
   return (
     // O <CartProvider> foi removido daqui pois já está no _layout.tsx
@@ -119,7 +88,7 @@ export default function IMeatPrimeHome() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Categorias</Text>
           <FlatList
-            data={CATEGORIES}
+            data={categories}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
@@ -135,29 +104,44 @@ export default function IMeatPrimeHome() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Nossos Produtos</Text>
           <View style={styles.productsGrid}>
-            {PRODUCTS.map((product) => (
-              <TouchableOpacity key={product.id} style={styles.productCard}>
-                <Image
-                  source={{ uri: product.image }}
-                  style={styles.productImage}
-                />
-                <Text style={styles.productName} numberOfLines={2}>
-                  {product.name}
-                </Text>
-                {/* Formatando o preço numérico para exibição */}
-                <Text style={styles.productPrice}>
-                  R$ {product.price.toFixed(2).replace(".", ",")}
-                </Text>
+            {isLoading ? (
+              <ActivityIndicator
+                size="large"
+                color="#D32F2F"
+                style={{ marginTop: 20 }}
+              />
+            ) : (
+              <View style={styles.productsGrid}>
+                {/* O map agora itera sobre o estado 'products' e não mais na constante */}
+                {products.map((product) => (
+                  <TouchableOpacity key={product.id} style={styles.productCard}>
+                    <Image
+                      source={{ uri: product.image }}
+                      style={styles.productImage}
+                    />
+                    <Text style={styles.productName} numberOfLines={2}>
+                      {product.name}
+                    </Text>
+                    <Text style={styles.productPrice}>
+                      R$ {product.price.toFixed(2).replace(".", ",")}
+                    </Text>
 
-                {/* Botão integrado com a action do Observer */}
-                <TouchableOpacity
-                  style={styles.buyButton}
-                  onPress={() => addToCart(product)}
-                >
-                  <Text style={styles.buyButtonText}>Adicionar</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            ))}
+                    <TouchableOpacity
+                      style={[
+                        styles.buyButton,
+                        product.stock === 0 && styles.buttonDisabled,
+                      ]}
+                      onPress={() => addToCart(product)}
+                      disabled={product.stock === 0}
+                    >
+                      <Text style={styles.buyButtonText}>
+                        {product.stock === 0 ? "Esgotado" : "Adicionar"}
+                      </Text>
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         </View>
 
@@ -299,7 +283,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    paddingRight: 20,
+    paddingRight: 10,
   },
   productCard: {
     width: "48%",

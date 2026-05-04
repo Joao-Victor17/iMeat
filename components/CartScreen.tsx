@@ -5,89 +5,46 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Linking,
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useCart } from "./CartContext"; // Ajuste o caminho se necessário
+import { useCart } from "./CartContext";
+import { useRouter } from "expo-router";
+import { api } from "@/services/api";
 
 export default function CarrinhoScreen() {
   const { cart, addToCart, removeFromCart, totalPrice } = useCart();
-
-  // Estado para controlar o botão de checkout e evitar cliques duplos
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const router = useRouter(); // Instanciando o roteador do Expo
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
 
     try {
-      // 1. Formata os dados no padrão do seu CreateOrderDto
       const orderPayload = {
-        // user_id e address_id podem ser null por enquanto, já que é MVP
         items: cart.map((item) => ({
-          product_id: Number(item.id), // Garantindo que o backend receba como número
+          product_id: Number(item.id),
           quantity: item.quantity,
         })),
-        guest_name: "Cliente",
+        guest_name: "João Teste",
         guest_email: "test_user@testuser.com",
-        guest_phone: "71912345678",
+        guest_phone: "71999999999",
       };
 
-      // 2. ETAPA 1: Cria a Ordem (Reserva o estoque no MariaDB)
-      const orderResponse = await fetch("http://192.168.10.11:3000/api/order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
+      // 1. Gera APENAS a Ordem (Etapa 1)
+      // 1. Cria a Ordem (O Axios já faz o stringify e já retorna o JSON em 'data')
+      const { data: order } = await api.post("/order", orderPayload);
 
-      if (!orderResponse.ok) {
-        const errorData = await orderResponse.json();
-        throw new Error(errorData.message || "Erro ao criar o pedido.");
-      }
-
-      const order = await orderResponse.json();
-
-      // 3. ETAPA 2: Confirma a Ordem (Gera o link no Mercado Pago)
-      const confirmPayload = {
-        method: "PIX",
-        payerEmail: "test@testuser.com", // Mockado por enquanto
-      };
-
-      const paymentResponse = await fetch(
-        `http://192.168.10.11:3000/api/order/${order.id}/confirm`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(confirmPayload),
-        },
-      );
-
-      console.log(await paymentResponse.json());
-
-      if (!paymentResponse.ok) {
-        const errorData = await paymentResponse.json();
-        throw new Error(errorData.message || "Erro ao gerar o pagamento.");
-      }
-
-      const { sandbox_init_point } = await paymentResponse.json();
-
-      // 4. Redireciona para o Checkout Pro
-      const supported = await Linking.canOpenURL(sandbox_init_point);
-      if (supported) {
-        await Linking.openURL(sandbox_init_point);
-      } else {
-        Alert.alert("Erro", "Não foi possível abrir a tela de pagamento.");
-      }
+      // 2. Redireciona para a tela de Resumo passando o ID da ordem criada
+      router.push(`/order/resume?order_id=${order.id}`);
     } catch (error: any) {
       console.error(error);
-      Alert.alert(
-        "Aviso",
-        error.message || "Não foi possível finalizar a compra.",
-      );
+      Alert.alert("Aviso", error.message || "Não foi possível gerar o pedido.");
     } finally {
       setIsCheckingOut(false);
     }
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Seu Pedido</Text>
@@ -138,7 +95,6 @@ export default function CarrinhoScreen() {
         </Text>
       </View>
 
-      {/* Botão de Finalizar Compra atualizado com a lógica de carregamento */}
       <TouchableOpacity
         style={[styles.checkoutBtn, cart.length === 0 && styles.disabledBtn]}
         disabled={cart.length === 0 || isCheckingOut}
@@ -147,15 +103,21 @@ export default function CarrinhoScreen() {
         {isCheckingOut ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.checkoutText}>Finalizar Compra</Text>
+          <Text style={styles.checkoutText}>Finalizar pedido</Text> // <-- Texto alterado
         )}
       </TouchableOpacity>
     </View>
   );
 }
 
+// ... manter os mesmos styles de antes
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0A0A0A", padding: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#0A0A0A",
+    padding: 20,
+    paddingBottom: 110,
+  },
   header: { color: "#FFF", fontSize: 22, fontWeight: "bold", marginBottom: 20 },
   empty: { color: "#777", fontSize: 16, textAlign: "center", marginTop: 50 },
   cartItem: {

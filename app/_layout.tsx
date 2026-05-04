@@ -93,6 +93,13 @@ function TabNavigator() {
           tabBarStyle: { display: "none" },
         }}
       />
+      <Tabs.Screen
+        name="order/resume"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
     </Tabs>
   );
 }

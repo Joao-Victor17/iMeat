@@ -1,12 +1,5 @@
+import { Product } from "@/entities/Products";
 import React, { createContext, useState, useContext } from "react";
-
-export type Product = {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  image: string;
-};
 
 export type CartItem = Product & { quantity: number };
 

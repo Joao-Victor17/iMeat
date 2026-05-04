@@ -8,7 +8,10 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { useCart, Product } from "./CartContext";
+import { useCart } from "./CartContext";
+import { Product } from "@/entities/Products";
+import { api } from "@/services/api";
+import { loadActiveProducts } from "@/hooks/loadProducts";
 
 // Tipagem baseada no retorno do seu NestJS
 interface BackendProduct {
@@ -28,46 +31,8 @@ export default function ProductScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchProducts();
+    loadActiveProducts({ setProducts, setIsLoading });
   }, []);
-
-  const fetchProducts = async () => {
-    try {
-      // Ajuste o IP e a rota para a do seu endpoint de produtos no NestJS
-      const response = await fetch("http://192.168.10.11:3000/api/products");
-
-      if (!response.ok) {
-        throw new Error("Erro ao buscar produtos da API");
-      }
-
-      const data: BackendProduct[] = await response.json();
-
-      // Mapeamento: converte a resposta do banco para o padrão do nosso frontend
-      const formattedProducts: Product[] = data.map((item) => ({
-        // Aplica o padding para garantir os zeros à esquerda (ex: 2 vira "002")
-        id: String(item.id).padStart(3, "0"),
-        name: item.name,
-        price: parseFloat(item.price), // Converte a string decimal para número
-        stock: item.stock,
-        // Pega a URL da primeira imagem se existir, senão usa o placeholder com o nome
-        image:
-          item.images && item.images.length > 0
-            ? item.images[0].url
-            : `https://via.placeholder.com/150/1e1e1e/FFFFFF?text=${encodeURIComponent(item.name)}`,
-      }));
-
-      // Filtra apenas os produtos ativos para exibir na vitrine
-      const activeProducts = formattedProducts.filter(
-        (_, index) => data[index].is_active,
-      );
-
-      setProducts(activeProducts);
-    } catch (error) {
-      console.error("Falha na requisição de produtos:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <View style={styles.container}>
