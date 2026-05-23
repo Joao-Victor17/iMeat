@@ -43,7 +43,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -56,5 +58,17 @@
       }
     },
     "owner": "cupolo"
+  },
+  "build": {
+    "development": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://radiologically-nongenerative-lillyana.ngrok-free.dev/api"
+      }
+    },
+    "preview": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://radiologically-nongenerative-lillyana.ngrok-free.dev/api"
+      }
+    }
   }
 }
