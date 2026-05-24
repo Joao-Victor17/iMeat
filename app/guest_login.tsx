@@ -9,8 +9,8 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 } from "react-native";
-import { useSession } from "./ctx";
-import { Href, router } from "expo-router";
+import { useSession } from "../contexts/ctx";
+import { router } from "expo-router";
 
 export default function GuestScreen() {
 	const { signInAsGuest } = useSession();

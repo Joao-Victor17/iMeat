@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/services/api";
-import { useCart } from "@/components/CartContext";
+import { useCart } from "@/contexts/CartContext";
 
 const POLLING_INTERVAL_MS = 5000; // verifica o status a cada 5s
 

@@ -10,8 +10,8 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 } from "react-native";
-import { useSession } from "./ctx";
-import { Href, router } from "expo-router";
+import { useSession } from "../contexts/ctx";
+import { router } from "expo-router";
 
 export default function Login() {
 	const { signIn } = useSession();
@@ -38,7 +38,7 @@ export default function Login() {
 			return;
 		}
 
-		router.replace("/(tabs)/index" as Href);
+		router.replace("/");
 	};
 
 	return (
@@ -104,7 +104,7 @@ export default function Login() {
 					</TouchableOpacity>
 					<TouchableOpacity
 						style={styles.guestButton}
-						onPress={() => router.push("/guest")}
+						onPress={() => router.push("/guest_login")}
 					>
 						<Text style={styles.guestButtonText}>
 							Continuar sem cadastro

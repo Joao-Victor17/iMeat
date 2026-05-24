@@ -1,31 +1,10 @@
 import React from "react";
-import { useStorageState } from "./useStorageState";
+import { useStorageState } from "../app/useStorageState";
 import { api } from "@/services/api";
 import { getOrCreateGuestId } from "@/services/guest_id";
-
-//Mover depois para um arquivo separado
-type User = {
-	name: string;
-	email: string;
-	phone: string;
-};
-
-type Guest = {
-	guest_id: string;
-	name: string;
-	phone: string;
-};
-
-type AuthContextType = {
-	signIn: (email: string, password: string) => Promise<{ error?: string }>;
-	signOut: () => void;
-	signInAsGuest: (name: string, phone: string) => void;
-	session?: string | null; // accessToken
-	user?: User | null;
-	guest?: Guest | null;
-	isGuest: boolean;
-	isLoading: boolean;
-};
+import { AuthContextType } from "@/types/AuthContext";
+import { Guest } from "@/types/Guest_User";
+import { User } from "@/types/User";
 
 const AuthContext = React.createContext<AuthContextType>({
 	signIn: async () => ({}),
@@ -72,7 +51,7 @@ export function SessionProvider(props: React.PropsWithChildren) {
 						return {};
 					} catch (e) {
 						return {
-							error: "Não foi possível se conectar ao servidor",
+							error: `Não foi possível se conectar ao servidor: ${e}`,
 						};
 					}
 				},

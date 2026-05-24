@@ -30,13 +30,13 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
 		icon: "⚡",
 		accentColor: "#32C77F",
 	},
-	{
-		id: "CARD",
-		label: "Cartão de Crédito",
-		description: "Parcele em até 12x",
-		icon: "💳",
-		accentColor: "#009EE3",
-	},
+	// {
+	// 	id: "CARD",
+	// 	label: "Cartão de Crédito",
+	// 	description: "Parcele em até 12x",
+	// 	icon: "💳",
+	// 	accentColor: "#009EE3",
+	// },
 	{
 		id: "CASH",
 		label: "Dinheiro",

@@ -1,5 +1,5 @@
 // app/my_orders.tsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
 	View,
 	Text,
@@ -9,16 +9,10 @@ import {
 	ActivityIndicator,
 	SafeAreaView,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { api } from "@/services/api";
-import { getOrCreateGuestId } from "@/services/guest_id";
-
-interface Order {
-	id: number;
-	status: string;
-	total: string;
-	created_at: string;
-}
+import { useSession } from "../../contexts/ctx";
+import { Order } from "@/types/Order";
 
 const STATUS_COLOR: Record<string, string> = {
 	pending: "#FFD700",
@@ -28,20 +22,32 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function MyOrdersScreen() {
+	const { session, user, guest, isGuest } = useSession();
 	const router = useRouter();
 	const [orders, setOrders] = useState<Order[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 
-	useEffect(() => {
-		fetchOrders();
-	}, []);
+	const userId = user?.user_id;
+
+	useFocusEffect(
+		useCallback(() => {
+			setIsLoading(true);
+			fetchOrders();
+		}, [isGuest, session]),
+	);
 
 	const fetchOrders = async () => {
 		try {
-			const guest_id = getOrCreateGuestId();
-			console.log(guest_id);
-			const { data } = await api.get(`/order/guest/${guest_id}`);
-			setOrders(data);
+			if (isGuest) {
+				const guest_id = guest?.guest_id; // ← usa o do contexto, não o getOrCreateGuestId()
+				if (!guest_id) return;
+				const { data } = await api.get(`/order/guest/${guest_id}`);
+				setOrders(data);
+			} else if (session) {
+				const { data } = await api.get(`/order/user/${userId}`);
+				console.log(data);
+				setOrders(data);
+			}
 		} catch (error) {
 			console.error(error);
 		} finally {

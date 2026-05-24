@@ -1,8 +1,8 @@
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Platform, View, ActivityIndicator } from "react-native";
-import { useCart } from "@/components/CartContext";
-import { useSession } from "../ctx";
+import { useCart } from "@/contexts/CartContext";
+import { useSession } from "../../contexts/ctx";
 
 export default function TabLayout() {
 	const { session, isLoading, isGuest } = useSession();

@@ -1,0 +1,33 @@
+import { StyleSheet } from "react-native";
+
+export const profileStyles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: "#0A0A0A",
+		padding: 20,
+		alignItems: "center",
+	},
+	avatarContainer: {
+		width: 90,
+		height: 90,
+		borderRadius: 45,
+		backgroundColor: "#D32F2F",
+		justifyContent: "center",
+		alignItems: "center",
+		marginTop: 20,
+		marginBottom: 15,
+	},
+	avatarText: { color: "#FFF", fontSize: 32, fontWeight: "bold" },
+	name: { color: "#FFF", fontSize: 22, fontWeight: "bold" },
+	email: { color: "#888", fontSize: 14, marginBottom: 40 },
+	menu: { width: "100%" },
+	menuItem: {
+		backgroundColor: "#1E1E1E",
+		padding: 18,
+		borderRadius: 10,
+		marginBottom: 10,
+	},
+	menuText: { color: "#FFF", fontSize: 16, fontWeight: "500" },
+	logoutBtn: { marginTop: "auto", marginBottom: 20, padding: 10 },
+	logoutText: { color: "#D32F2F", fontSize: 16, fontWeight: "bold" },
+});

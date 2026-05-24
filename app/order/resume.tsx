@@ -6,7 +6,6 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	Alert,
-	Linking,
 	SafeAreaView,
 	FlatList,
 } from "react-native";

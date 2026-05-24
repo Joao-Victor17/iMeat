@@ -1,4 +1,4 @@
-import { Product } from "@/entities/Products";
+import { Product } from "@/types/Products";
 import React, { createContext, useState, useContext } from "react";
 
 export type CartItem = Product & { quantity: number };
