@@ -12,33 +12,48 @@ import { useCart } from "./CartContext";
 import { useRouter } from "expo-router";
 import { api } from "@/services/api";
 import { getOrCreateGuestId } from "@/services/guest_id";
+import { useSession } from "@/app/ctx";
 
 export default function CarrinhoScreen() {
 	const { cart, addToCart, removeFromCart, totalPrice } = useCart();
+	const { session, user, guest, isGuest } = useSession();
 	const [isCheckingOut, setIsCheckingOut] = useState(false);
 	const router = useRouter(); // Instanciando o roteador do Expo
 
 	const handleCheckout = async () => {
 		setIsCheckingOut(true);
+		// Captura o valor no momento do clique
+		const guestId = guest?.guestId;
+		const guestName = guest?.name;
+		const guestPhone = guest?.phone;
 
+		console.log("guestId capturado:", guestId);
 		try {
-			const guest_id = getOrCreateGuestId();
-
-			const orderPayload = {
-				items: cart.map((item) => ({
-					product_id: Number(item.id),
-					quantity: item.quantity,
-				})),
-				guest_id: guest_id,
-				guest_name: "João Teste",
-				guest_email: "test_user@testuser.com",
-				guest_phone: "71999999999",
-			};
+			const orderPayload = isGuest
+				? {
+						items: cart.map((item) => ({
+							product_id: Number(item.id),
+							quantity: item.quantity,
+						})),
+						guest_id: guestId,
+						guest_name: guestName,
+						guest_phone: guestPhone,
+					}
+				: {
+						items: cart.map((item) => ({
+							product_id: Number(item.id),
+							quantity: item.quantity,
+						})),
+					};
 
 			// 1. Gera APENAS a Ordem (Etapa 1)
 			// 1. Cria a Ordem (O Axios já faz o stringify e já retorna o JSON em 'data')
-			console.log(guest_id);
-			const { data: order } = await api.post("/order", orderPayload);
+			console.log("isGuest:", isGuest);
+			console.log("guest:", guest);
+			console.log("orderPayload:", orderPayload);
+			const { data: order } = await api.post("/order", orderPayload, {
+				headers: session ? { Authorization: `Bearer ${session}` } : {},
+			});
 
 			// 2. Redireciona para a tela de Resumo passando o ID da ordem criada
 			router.push(`/order/resume?order_id=${order.id}`);

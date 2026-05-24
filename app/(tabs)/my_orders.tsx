@@ -38,9 +38,9 @@ export default function MyOrdersScreen() {
 
 	const fetchOrders = async () => {
 		try {
-			const guestId = getOrCreateGuestId();
-			console.log(guestId);
-			const { data } = await api.get(`/order/guest/${guestId}`);
+			const guest_id = getOrCreateGuestId();
+			console.log(guest_id);
+			const { data } = await api.get(`/order/guest/${guest_id}`);
 			setOrders(data);
 		} catch (error) {
 			console.error(error);

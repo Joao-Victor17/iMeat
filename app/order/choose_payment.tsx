@@ -9,7 +9,7 @@ import {
 	Alert,
 	ActivityIndicator,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Href, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/services/api";
 
 type PaymentMethod = "PIX" | "CARD" | "CASH";
@@ -59,42 +59,37 @@ export default function ChoosePaymentScreen() {
 		setIsProcessingPayment(true);
 
 		try {
-			const confirmPayload = {
-				method: selected,
-				payerEmail: "test_user@testuser.com",
-			};
+			if (selected === "PIX") {
+				const { data } = await api.patch(`/order/${order_id}/confirm`, {
+					method: "PIX",
+					payerEmail: "victorcupolo@gmail.com",
+				});
 
-			console.log(order_id);
+				router.push({
+					pathname: "/order/pix" as any,
+					params: {
+						order_id: order_id,
+						pix_copy_paste: data.pix_copy_paste,
+						pix_qr_code: data.pix_qr_code,
+						expires_at: data.expires_at,
+					},
+				});
 
-			// Dispara a ETAPA 2 (Confirmação e Geração do Checkout Pro)
-			const paymentResponse = await api.patch(
-				`/order/${order_id}/confirm`,
-				confirmPayload,
-			);
-			const paymentData = await paymentResponse.data;
-
-			if (!paymentResponse) {
-				throw new Error(
-					paymentData.data || "Erro ao iniciar o pagamento.",
-				);
+				return;
 			}
 
-			// Redireciona para o Checkout Pro
-			const supported = await Linking.canOpenURL(paymentData.init_point);
-			if (supported) {
-				await Linking.openURL(paymentData.init_point);
-			} else {
-				Alert.alert("Erro", "Não foi possível abrir o navegador.");
+			if (selected === "CASH") {
+				router.push(`/order/success?order_id=${order_id}`);
+				return;
 			}
+
+			// CARD — implementar futuramente
+			Alert.alert("Em breve", "Pagamento por cartão em desenvolvimento.");
 		} catch (error: any) {
-			Alert.alert("Aviso", error.message);
+			Alert.alert("Erro", error.message);
 		} finally {
 			setIsProcessingPayment(false);
 		}
-
-		console.log(
-			`Pedido ${order_id} confirmado com pagamento via ${selected}`,
-		);
 	};
 
 	return (
