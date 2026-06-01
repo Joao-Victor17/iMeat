@@ -14,11 +14,13 @@ export const handleCheckout = async (props: {
 	cart: CartItem[];
 }) => {
 	props.setIsCheckingOut(true);
-	// Captura o valor no momento do clique
-	const guestId = props.guest?.guest_id;
-	const guestName = props.guest?.name;
-	const guestPhone = props.guest?.phone;
-	const userId = props.user?.user_id;
+	const guest_id = props.guest?.guest_id;
+	const guest_firstName = props.guest?.payerFirstName_guest;
+	const guest_lastName = props.guest?.payerLastName_guest;
+	const guest_phone = props.guest?.phone;
+	const guest_email = props.guest?.email;
+	const guest_identificationType = props.guest?.identificationType;
+	const guest_identificationNumber = props.guest?.identificationNumber;
 
 	try {
 		const orderPayload = props.isGuest
@@ -27,31 +29,30 @@ export const handleCheckout = async (props: {
 						product_id: Number(item.id),
 						quantity: item.quantity,
 					})),
-					guest_id: guestId,
-					guest_name: guestName,
-					guest_phone: guestPhone,
+					guest_id: guest_id,
+					guest_first_name: guest_firstName,
+					guest_last_name: guest_lastName,
+					guest_phone,
+					guest_email,
+					guest_identification_type: guest_identificationType,
+					guest_identification_number: guest_identificationNumber,
 				}
 			: {
 					items: props.cart.map((item) => ({
 						product_id: Number(item.id),
 						quantity: item.quantity,
 					})),
-					user_id: userId,
+					user_id: null,
 				};
 
-		// 1. Gera APENAS a Ordem (Etapa 1)
-		// 1. Cria a Ordem (O Axios já faz o stringify e já retorna o JSON em 'data')
-		console.log("guest:", props.guest);
-		console.log("orderPayload:", orderPayload);
-
-		const { data: order } = await api.post("/order", orderPayload, {
-			headers: props.session
-				? { Authorization: `Bearer ${props.session}` }
-				: {},
-		});
+		// const { data: order } = await api.post("/order", orderPayload, {
+		// 	headers: props.session
+		// 		? { Authorization: `Bearer ${props.session}` }
+		// 		: {},
+		// });
 
 		// 2. Redireciona para a tela de Resumo passando o ID da ordem criada
-		router.push(`/order/resume?order_id=${order.id}`);
+		router.push("/order/address");
 	} catch (error: any) {
 		console.error(error);
 		Alert.alert(

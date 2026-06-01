@@ -8,9 +8,12 @@ import {
 	Linking,
 	Alert,
 	ActivityIndicator,
+	Platform,
 } from "react-native";
 import { Href, useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/services/api";
+import { useSession } from "@/contexts/ctx";
+// import * as Device from "expo-device";
 
 type PaymentMethod = "PIX" | "CARD" | "CASH";
 
@@ -47,9 +50,12 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
 ];
 
 export default function ChoosePaymentScreen() {
+	const { guest, isGuest } = useSession();
 	const { order_id, total } = useLocalSearchParams();
 	const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 	const router = useRouter();
+
+	const deviceId: string = `${Platform.OS}-${Platform.Version}`;
 
 	const [selected, setSelected] = useState<PaymentMethod | null>(null);
 
@@ -62,7 +68,9 @@ export default function ChoosePaymentScreen() {
 			if (selected === "PIX") {
 				const { data } = await api.patch(`/order/${order_id}/confirm`, {
 					method: "PIX",
-					payerEmail: "victorcupolo@gmail.com",
+					payerEmail: guest?.email,
+					deviceId:
+						/*Device.osInternalBuildId ?? Device.modelId*/ deviceId,
 				});
 
 				router.push({

@@ -47,13 +47,6 @@ export default function Login() {
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.inner}
 			>
-				{/* HEADER */}
-				<View style={styles.header}>
-					<Text style={styles.logoText}>
-						I MEAT <Text style={styles.logoAccent}>PRIME</Text>
-					</Text>
-				</View>
-
 				{/* FORMULÁRIO */}
 				<View style={styles.form}>
 					<Text style={styles.title}>Entrar na conta</Text>
@@ -104,10 +97,10 @@ export default function Login() {
 					</TouchableOpacity>
 					<TouchableOpacity
 						style={styles.guestButton}
-						onPress={() => router.push("/guest_login")}
+						onPress={() => router.push("/register")}
 					>
 						<Text style={styles.guestButtonText}>
-							Continuar sem cadastro
+							Não tem cadastro? Clique aqui!
 						</Text>
 					</TouchableOpacity>
 				</View>

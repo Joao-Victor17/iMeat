@@ -26,6 +26,8 @@ export default function RootLayout() {
 						<Stack.Screen name="order/resume" />
 						<Stack.Screen name="order/choose_payment" />
 						<Stack.Screen name="order/pix" />
+						<Stack.Screen name="order/address" />
+						<Stack.Screen name="profile/savedAddress" />
 					</Stack>
 				</CartProvider>
 			</SessionProvider>

@@ -1,20 +1,16 @@
 import React from "react";
-import { useStorageState } from "../app/useStorageState";
+import { useStorageState } from "../hooks/useStorageState";
 import { api } from "@/services/api";
-import { getOrCreateGuestId } from "@/services/guest_id";
 import { AuthContextType } from "@/types/AuthContext";
-import { Guest } from "@/types/Guest_User";
 import { User } from "@/types/User";
 
 const AuthContext = React.createContext<AuthContextType>({
 	signIn: async () => ({}),
-	signInAsGuest: async () => null,
+	registerUser: async () => ({}),
 	signOut: () => null,
 	session: null,
 	user: null,
-	guest: null,
-	isGuest: false,
-	isLoading: false,
+	isLoading: true,
 });
 
 // This hook can be used to access the user info.
@@ -25,12 +21,9 @@ export function useSession() {
 export function SessionProvider(props: React.PropsWithChildren) {
 	const [[isLoadingToken, session], setSession] = useStorageState("session");
 	const [[isLoadingUser, userRaw], setUserRaw] = useStorageState("user");
-	const [[isLoadingGuest, guestRaw], setGuestRaw] = useStorageState("guest");
 
-	const guest: Guest | null = guestRaw ? JSON.parse(guestRaw) : null;
 	const user: User | null = userRaw ? JSON.parse(userRaw) : null;
-	const isLoading = isLoadingToken || isLoadingUser || isLoadingGuest;
-	const isGuest = guest !== null;
+	const isLoading = isLoadingToken || isLoadingUser;
 
 	return (
 		<AuthContext.Provider
@@ -59,16 +52,33 @@ export function SessionProvider(props: React.PropsWithChildren) {
 				signOut: () => {
 					setSession(null);
 					setUserRaw(null);
-					setGuestRaw(null);
 				},
-				signInAsGuest: (name, phone) => {
-					const guest_id = getOrCreateGuestId();
-					setGuestRaw(JSON.stringify({ guest_id, name, phone }));
+				registerUser: async (
+					firstName,
+					lastName,
+					email,
+					phone,
+					docType,
+					document,
+					password,
+				) => {
+					try {
+						await api.post("/users", {
+							firstName,
+							lastName,
+							email,
+							phone,
+							docType,
+							document,
+							password,
+						});
+						return {};
+					} catch (e) {
+						return { error: `Erro ao cadastrar: ${e}` };
+					}
 				},
 				session,
 				user,
-				guest,
-				isGuest,
 				isLoading,
 			}}
 		>
