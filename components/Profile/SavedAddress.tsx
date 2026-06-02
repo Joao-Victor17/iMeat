@@ -1,6 +1,7 @@
 import { useCart } from "@/contexts/CartContext";
 import { api } from "@/services/api";
 import { User } from "@/types/User";
+import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
 	ActivityIndicator,
@@ -57,12 +58,19 @@ export default function SavedAddressesScreen({
 	const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 	const { cart } = useCart();
 
+	// ── Create ────────────────────────────────────────────────────────────────
+	const handleCreateAddress = async () => {
+		router.push("/order/address");
+	};
+
 	// ── Fetch ────────────────────────────────────────────────────────────────
 
 	const fetchAddresses = useCallback(async () => {
 		setLoading(true);
 		try {
-			const res = await api.get(`/address/user/${user_id}`);
+			const res = await api.get(`/address`, {
+				headers: { Authorization: `${session}` },
+			});
 
 			if (!res) throw new Error("Erro ao buscar endereços");
 
@@ -77,7 +85,7 @@ export default function SavedAddressesScreen({
 		} finally {
 			setLoading(false);
 		}
-	}, [user_id]);
+	}, [session]);
 
 	useEffect(() => {
 		fetchAddresses();
@@ -89,14 +97,12 @@ export default function SavedAddressesScreen({
 		if (address.is_default) return;
 		setActionLoadingId(address.id);
 		try {
-			const res = await fetch(
-				`${apiBaseUrl}/address/${address.id}/default`,
-				{
-					method: "PATCH",
-					headers: { Authorization: `Bearer ${authToken}` },
-				},
-			);
-			if (!res.ok) throw new Error();
+			const response = await api.patch(`address/${address.id}/default`, {
+				headers: { Authorization: session },
+			});
+
+			if (!response) throw new Error();
+
 			setAddresses((prev) =>
 				prev.map((a) => ({ ...a, is_default: a.id === address.id })),
 			);
@@ -119,19 +125,17 @@ export default function SavedAddressesScreen({
 					onPress: async () => {
 						setActionLoadingId(address.id);
 						try {
-							const res = await fetch(
-								`${apiBaseUrl}/address/${address.id}`,
-								{
-									method: "DELETE",
-									headers: {
-										Authorization: `Bearer ${authToken}`,
-									},
-								},
+							const response = await api.delete(
+								`address/${address.id}`,
+								{ headers: { Authorization: session } },
 							);
-							if (!res.ok) throw new Error();
+
+							if (!response) throw new Error();
+
 							setAddresses((prev) =>
 								prev.filter((a) => a.id !== address.id),
 							);
+
 							if (selectedId === address.id) setSelectedId(null);
 						} catch {
 							Alert.alert(
@@ -155,30 +159,7 @@ export default function SavedAddressesScreen({
 			return;
 		}
 
-		// Verifica se há itens no carrinho antes de confirmar o endereço.
-		// cartItems deve vir via prop ou contexto — veja nota abaixo.
-		const hasCart = cart.length > 0;
-
-		if (!hasCart) {
-			Alert.alert(
-				"Carrinho vazio",
-				"Adicione itens ao carrinho antes de escolher um endereço de entrega.",
-				[{ text: "Ok" }],
-			);
-			return;
-		}
-
-		Alert.alert(
-			"Confirmar endereço",
-			`Entregar em:\n${selected.street}, ${selected.numberAddress} — ${selected.neighborhood}, ${selected.city}`,
-			[
-				{ text: "Cancelar", style: "cancel" },
-				{
-					text: "Confirmar",
-					onPress: () => onSelectAddress(selected),
-				},
-			],
-		);
+		onSelectAddress(selected);
 	};
 
 	// ── Render item ──────────────────────────────────────────────────────────
@@ -288,6 +269,13 @@ export default function SavedAddressesScreen({
 						{addresses.length !== 1 ? "s" : ""}
 					</Text>
 				</View>
+				<TouchableOpacity
+					onPress={handleCreateAddress}
+					style={styles.createBtn}
+					hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+				>
+					<Text style={styles.createBtnText}>+ Novo endereço</Text>
+				</TouchableOpacity>
 			</View>
 
 			{/* Lista */}
@@ -346,6 +334,18 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: "#0A0A0A",
+	},
+	createBtn: {
+		padding: 10,
+		backgroundColor: "#1A1A1A",
+		borderRadius: 8,
+		justifyContent: "center",
+		marginLeft: "auto",
+	},
+	createBtnText: {
+		color: "#FFF",
+		fontSize: 16,
+		lineHeight: 20,
 	},
 
 	// Header

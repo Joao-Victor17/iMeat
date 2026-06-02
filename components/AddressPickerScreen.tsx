@@ -6,7 +6,6 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	ScrollView,
-	Dimensions,
 	Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -40,7 +39,7 @@ interface NominatimResult {
 interface SelectedAddress {
 	formatted: string;
 	street: string;
-	number: string;
+	numberAddress: string;
 	complement: string;
 	neighborhood: string;
 	city: string;
@@ -124,7 +123,7 @@ export default function AddressPickerScreen({
 	// ── Endereço selecionado ────────────────────────────────
 	const [selectedAddress, setSelectedAddress] =
 		useState<SelectedAddress | null>(null);
-	const [number, setNumber] = useState("");
+	const [numberAddress, setNumberAddress] = useState("");
 	const [complement, setComplement] = useState("");
 
 	// ── Tab ativo ───────────────────────────────────────────
@@ -195,7 +194,7 @@ export default function AddressPickerScreen({
 		setSelectedAddress({
 			formatted: item.display_name,
 			street,
-			number: "",
+			numberAddress: "",
 			complement: "",
 			neighborhood,
 			city,
@@ -310,7 +309,7 @@ export default function AddressPickerScreen({
 			setSelectedAddress({
 				formatted: `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`,
 				street: data.logradouro,
-				number: "",
+				numberAddress: "",
 				complement: "",
 				neighborhood: data.bairro,
 				city: data.localidade,
@@ -354,7 +353,7 @@ export default function AddressPickerScreen({
 			setSelectedAddress((prev) => ({
 				formatted: data.display_name,
 				street,
-				number: prev?.number ?? "",
+				numberAddress: prev?.numberAddress ?? "",
 				complement: prev?.complement ?? "",
 				neighborhood,
 				city,
@@ -373,16 +372,16 @@ export default function AddressPickerScreen({
 			Alert.alert("Atenção", "Selecione um endereço antes de confirmar.");
 			return;
 		}
-		if (!number.trim()) {
+		if (!numberAddress.trim()) {
 			Alert.alert("Atenção", "Informe o número do endereço.");
 			return;
 		}
 
 		const finalAddress: SelectedAddress = {
 			...selectedAddress,
-			number: number.trim(),
+			numberAddress: numberAddress.trim(),
 			complement: complement.trim(),
-			formatted: `${selectedAddress.street}, ${number.trim()}${complement ? ` - ${complement}` : ""}, ${selectedAddress.neighborhood}, ${selectedAddress.city} - ${selectedAddress.state}`,
+			formatted: `${selectedAddress.street}, ${numberAddress.trim()}${complement ? ` - ${complement}` : ""}, ${selectedAddress.neighborhood}, ${selectedAddress.city} - ${selectedAddress.state}`,
 		};
 
 		onAddressConfirmed(finalAddress);
@@ -601,8 +600,8 @@ export default function AddressPickerScreen({
 									placeholder="Número"
 									placeholderTextColor="#555"
 									keyboardType="numeric"
-									value={number}
-									onChangeText={setNumber}
+									value={numberAddress}
+									onChangeText={setNumberAddress}
 								/>
 								<TextInput
 									style={[styles.extraInput, { flex: 1 }]}
@@ -622,7 +621,7 @@ export default function AddressPickerScreen({
 								onPress={() =>
 									onSaveAddress({
 										...selectedAddress,
-										number,
+										numberAddress,
 										complement,
 									})
 								}

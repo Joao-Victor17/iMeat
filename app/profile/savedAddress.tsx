@@ -6,7 +6,7 @@ import { useSession } from "@/contexts/ctx";
 export default function AddressScreen() {
 	const router = useRouter();
 	const { session, user } = useSession();
-	const { handleSelectAddress } = useSelectAddress();
+	const { handleSelectAddress } = useSelectAddress("getAddress");
 
 	return (
 		<SavedAddressesScreen

@@ -4,7 +4,7 @@ import AddressPickerScreen from "@/components/AddressPickerScreen";
 import { useSession } from "@/contexts/ctx";
 
 export default function AddressScreen() {
-	const { handleSelectAddress } = useSelectAddress();
+	const { handleSelectAddress } = useSelectAddress("newAddress");
 	const { user } = useSession();
 
 	return (

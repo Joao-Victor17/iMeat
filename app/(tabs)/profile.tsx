@@ -21,8 +21,8 @@ export default function ProfileScreen() {
 
 	// Gera as iniciais a partir do nome da sessão
 	const initials =
-		user?.first_name && user?.last_name
-			? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+		user?.firstName && user?.lastName
+			? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
 			: "?";
 
 	return (
@@ -31,8 +31,8 @@ export default function ProfileScreen() {
 				<Text style={profileStyles.avatarText}>{initials}</Text>
 			</View>
 			<Text style={profileStyles.name}>
-				{user?.first_name && user?.last_name
-					? `${user.first_name} ${user.last_name}`
+				{user?.firstName && user?.lastName
+					? `${user.firstName} ${user.lastName}`
 					: "Sem nome"}
 			</Text>
 			<Text style={profileStyles.email}>

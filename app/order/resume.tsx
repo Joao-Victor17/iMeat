@@ -8,8 +8,11 @@ import {
 	Alert,
 	SafeAreaView,
 	FlatList,
+	ScrollView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCart } from "@/contexts/CartContext";
+import { useSession } from "@/contexts/ctx";
 import { api } from "@/services/api";
 
 // Tipagem baseada no seu endpoint findById
@@ -20,97 +23,146 @@ interface OrderDetails {
 	order_items: any[];
 }
 
-export default function ResumoPedidoScreen() {
-	const { order_id } = useLocalSearchParams();
-	const router = useRouter();
+interface Address {
+	formatted: string;
+	street: string;
+	numberAddress?: string;
+	neighborhood: string;
+	city: string;
+	state: string;
+	cep: string;
+	latitude: number;
+	longitude: number;
+}
 
-	const [order, setOrder] = useState<OrderDetails | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+export default function ResumoPedidoScreen() {
+	const router = useRouter();
+	const { cart, totalPrice } = useCart();
+	const { user, session } = useSession();
+	const { address_id } = useLocalSearchParams();
+
+	const [address, setAddress] = useState<Address | null>(null);
+	const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+
 	const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-	// Busca os detalhes da ordem assim que a tela abre
-	useEffect(() => {
-		if (order_id) fetchOrderDetails();
-	}, [order_id]);
+	const fetchAddress = async () => {
+		if (!address_id) return;
 
-	const fetchOrderDetails = async () => {
+		setIsLoadingAddress(true);
 		try {
-			const response = api.get(`/order/${order_id}`);
-			const data = await response;
-
-			if (!response) {
-				throw new Error(data.data || "Erro ao buscar pedido.");
-			}
-			setOrder(data.data);
-		} catch (error: any) {
-			Alert.alert("Erro", error.message);
-			router.back();
+			const response = await api.get(`/address/${address_id}`, {
+				headers: {
+					Authorization: session,
+				},
+			});
+			setAddress(response.data);
+		} catch {
+			Alert.alert("Erro", "Ocorreu um erro ao buscar o endereço.");
 		} finally {
-			setIsLoading(false);
+			setIsLoadingAddress(false);
 		}
 	};
 
-	const handlePayment = async () => {
-		router.push(`/order/choose_payment?order_id=${order_id}`);
+	useEffect(() => {
+		fetchAddress();
+	}, [address_id]);
+
+	const handleOrder = async () => {
+		setIsProcessingPayment(true);
+		try {
+			const response = await api.post(
+				"/order",
+				{
+					items: cart.map((item) => ({
+						product_id: Number(item.id),
+						quantity: item.quantity,
+					})),
+					user_id: user?.user_id,
+					address_id: Number(address_id),
+				},
+				{ headers: { Authorization: session } },
+			);
+
+			router.push({
+				pathname: "/order/choose_payment",
+				params: { order_id: response.data.id },
+			});
+		} catch {
+			Alert.alert("Erro", "Ocorreu um erro ao processar o pagamento.");
+		} finally {
+			setIsProcessingPayment(false);
+		}
 	};
 
-	if (isLoading) {
-		return (
-			<View style={[styles.container, styles.centered]}>
-				<ActivityIndicator size="large" color="#D32F2F" />
-			</View>
-		);
-	}
-
 	return (
+		// Troque o SafeAreaView + card pela estrutura abaixo
+
 		<SafeAreaView style={styles.container}>
-			<Text style={styles.header}>Resumo do Pedido #{order?.id}</Text>
+			<Text style={styles.header}>Resumo do Pedido</Text>
 
-			<View style={styles.card}>
-				<Text style={styles.statusLabel}>Status da Ordem:</Text>
-				<Text style={styles.statusValue}>{order?.status}</Text>
-
-				<View style={styles.divider} />
-
-				<Text style={styles.itemsHeader}>Itens:</Text>
-				<FlatList
-					data={order?.order_items}
-					keyExtractor={(item) => item.id.toString()}
-					showsVerticalScrollIndicator={false}
-					renderItem={({ item }) => (
-						<View style={styles.itemRow}>
+			<ScrollView
+				style={{ flex: 1 }}
+				contentContainerStyle={{ paddingBottom: 20 }}
+				showsVerticalScrollIndicator={false}
+			>
+				<View style={styles.card}>
+					{/* Endereço */}
+					<Text style={styles.itemsHeader}>Entregar em:</Text>
+					{isLoadingAddress ? (
+						<ActivityIndicator color="#D32F2F" size="small" />
+					) : address ? (
+						<View style={{ gap: 2 }}>
 							<Text style={styles.itemText}>
-								{item.quantity}x{" "}
-								{item.product?.name || "Produto"}
+								{address.street}, {address.numberAddress}
+							</Text>
+							<Text style={styles.itemText}>
+								{address.neighborhood} · {address.city} -{" "}
+								{address.state}
+							</Text>
+							<Text style={[styles.itemText, { color: "#555" }]}>
+								CEP {address.cep}
+							</Text>
+						</View>
+					) : (
+						<Text style={styles.itemText}>
+							Endereço não encontrado
+						</Text>
+					)}
+
+					<View style={styles.divider} />
+
+					{/* Itens — sem FlatList */}
+					<Text style={styles.itemsHeader}>Itens:</Text>
+					{cart.map((item) => (
+						<View key={item.id.toString()} style={styles.itemRow}>
+							<Text style={styles.itemText}>
+								{item.quantity}x {item.name}
 							</Text>
 							<Text style={styles.itemPrice}>
-								R${" "}
-								{parseFloat(item.subtotal)
+								R$
+								{(item.price * item.quantity)
 									.toFixed(2)
 									.replace(".", ",")}
 							</Text>
 						</View>
-					)}
-				/>
+					))}
 
-				<View style={styles.divider} />
+					<View style={styles.divider} />
 
-				<View style={styles.totalRow}>
-					<Text style={styles.totalLabel}>Total a pagar:</Text>
-					<Text style={styles.totalValue}>
-						R${" "}
-						{order
-							? parseFloat(order.total)
-									.toFixed(2)
-									.replace(".", ",")
-							: "0,00"}
-					</Text>
+					<View style={styles.totalRow}>
+						<Text style={styles.totalLabel}>Total a pagar:</Text>
+						<Text style={styles.totalValue}>
+							R${totalPrice.toFixed(2).replace(".", ",")}
+						</Text>
+					</View>
 				</View>
-			</View>
+			</ScrollView>
 
+			{/* Botão fixo no rodapé */}
 			<TouchableOpacity
 				style={styles.payBtn}
-				onPress={handlePayment}
+				onPress={handleOrder}
 				disabled={isProcessingPayment}
 			>
 				{isProcessingPayment ? (
@@ -139,7 +191,6 @@ const styles = StyleSheet.create({
 		backgroundColor: "#1E1E1E",
 		borderRadius: 12,
 		padding: 20,
-		flex: 1,
 		marginBottom: 20,
 	},
 	statusLabel: { color: "#888", fontSize: 14 },

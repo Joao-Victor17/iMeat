@@ -10,7 +10,7 @@ import {
 	ActivityIndicator,
 	Platform,
 } from "react-native";
-import { Href, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { api } from "@/services/api";
 import { useSession } from "@/contexts/ctx";
 // import * as Device from "expo-device";
@@ -50,7 +50,7 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
 ];
 
 export default function ChoosePaymentScreen() {
-	const { guest, isGuest } = useSession();
+	const { user } = useSession();
 	const { order_id, total } = useLocalSearchParams();
 	const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 	const router = useRouter();
@@ -68,7 +68,7 @@ export default function ChoosePaymentScreen() {
 			if (selected === "PIX") {
 				const { data } = await api.patch(`/order/${order_id}/confirm`, {
 					method: "PIX",
-					payerEmail: guest?.email,
+					payerEmail: user?.email,
 					deviceId:
 						/*Device.osInternalBuildId ?? Device.modelId*/ deviceId,
 				});
