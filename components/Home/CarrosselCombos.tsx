@@ -1,26 +1,42 @@
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import {
+	ActivityIndicator,
+	FlatList,
+	Image,
+	Text,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { carrosselStyles } from "@/styles/Home/CarrosselStyles";
-
-// --- DADOS DE EXEMPLO ---
-const COMBOS = [
-	{
-		id: "001",
-		title: "Combo Churrasco Família",
-		price: "R$ 149,90",
-		image: "https://via.placeholder.com/300x150/8B0000/FFFFFF?text=Combo+Familia",
-	},
-	{
-		id: "002",
-		title: "Kit Picanha Premium",
-		price: "R$ 199,90",
-		image: "https://via.placeholder.com/300x150/8B0000/FFFFFF?text=Kit+Premium",
-	},
-];
+import { ProductService } from "@/services/product.service";
+import { useEffect, useState } from "react";
+import { Product } from "@/types/Products";
 
 export default function CarrosselCombos() {
+	const [combos, setCombos] = useState<Product[]>([]);
+	const [loading, setLoading] = useState(true);
+
+	async function fetchCombos() {
+		const data = await ProductService.getCombos();
+		setCombos(data);
+	}
+
+	useEffect(() => {
+		setLoading(true);
+		try {
+			fetchCombos();
+		} catch (error) {
+			console.error(error);
+		} finally {
+			setLoading(false);
+		}
+		fetchCombos();
+	}, []);
+
+	if (loading) return <ActivityIndicator />;
+
 	return (
 		<FlatList
-			data={COMBOS}
+			data={combos}
 			horizontal
 			showsHorizontalScrollIndicator={false}
 			keyExtractor={(item) => item.id}
@@ -32,7 +48,7 @@ export default function CarrosselCombos() {
 					/>
 					<View style={carrosselStyles.bannerTextContainer}>
 						<Text style={carrosselStyles.bannerTitle}>
-							{item.title}
+							{item.name}
 						</Text>
 						<Text style={carrosselStyles.bannerPrice}>
 							{item.price}
