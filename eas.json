@@ -1,24 +1,25 @@
 {
-	"cli": {
-		"version": ">= 18.0.1",
-		"appVersionSource": "remote"
-	},
-	"build": {
-		"development": {
-			"developmentClient": true,
-			"distribution": "internal",
-			"env": {
-				"EXPO_PUBLIC_API_URL": "https://imeat-backend-1.onrender.com/api"
-			}
-		},
-		"preview": {
-			"distribution": "internal"
-		},
-		"production": {
-			"autoIncrement": true
-		}
-	},
-	"submit": {
-		"production": {}
-	}
+  "cli": {
+    "version": ">= 18.0.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.189:3000/api",
+        "MERCADO_PAGO_PUBLIC_KEY": "APP_USR-173e5588-e74d-40fa-afc8-1486c85674b4"
+      }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
 }
