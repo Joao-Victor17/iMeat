@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "imeat",
+  "name": "imeatprime",
   "compatibility_date": "2026-08-07",
   "assets": {
     "directory": "./dist",
